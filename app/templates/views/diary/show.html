@@ -8,7 +8,7 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-lg-9">
+    <div class="col-lg-6">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <i class="fa fa-edit fa-fw"></i> Diary Detail
@@ -33,7 +33,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                {{ form.content(class='form-control', rows=20) }}
+                                {{ form.content(class='form-control', rows=20, id='content') }}
                             </div>
                         </div>
                     </div>
@@ -42,36 +42,14 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <i class="fa fa-calendar fa-fw"></i> Calendar
-                        <div class="pull-right">
-                            <a type="button" class="btn btn-default btn-xs" href="{{ url_for('diary.index') }}">Today</a>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <a type="button" class="btn btn-default btn-xs pull-left" href="{{ url_for('diary.get_diary', diary_date=navigation['previous'].date()) }}">
-                                        <li class="fa fa-angle-double-left"></li> Previous Day
-                                    </a>
-                                </div>
-                                <div class="col-md-4">
-                                    <div style="text-align: center;">{{ navigation['day'].date() }}</div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <a type="button" class="btn btn-default btn-xs pull-right" href="{{ url_for('diary.get_diary', diary_date=navigation['next'].date()) }}">
-                                        Next Day <li class="fa fa-angle-double-right"></li>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-eye fa-fw"></i> Preview
+            </div>
+            <div class="panel-body">
+                <div id="content-preview">
+                    {{ content_html|safe }}
                 </div>
             </div>
         </div>
@@ -83,9 +61,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script>
     $(document).ready(function() {
+        const easyMDE = new EasyMDE({element: document.getElementById('content')});
+
         $('.createOrUpdate').submit(function (e) {
+            e.preventDefault();
             var url = "{{ url_for('diary.create_diary') }}";
             var title = document.getElementById("title").value;
+            easyMDE.codemirror.save();
 
             $.ajax({
                 type: "POST",
@@ -96,9 +78,19 @@
                       'Transaction Approved',
                       'Saved & Uploaded',
                       'success'
-                    ),
+                    );
                     document.getElementById("header-title").innerHTML = title;
                     document.title = title + ' | Confidant';
+                    // Update preview
+                    var markdown = easyMDE.value();
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url_for('api.render_markdown') }}", // A new route to render markdown
+                        data: {markdown: markdown},
+                        success: function(data) {
+                            $('#content-preview').html(data.html);
+                        }
+                    });
                 },
                 error: function(data) {
                     Swal.fire(
@@ -108,7 +100,6 @@
                     )
                 }
             });
-            e.preventDefault();
         });
     });
 </script>

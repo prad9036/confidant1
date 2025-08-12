@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+import markdown
 
 from flask import Blueprint, redirect, url_for, render_template, jsonify
 from flask import request
@@ -78,13 +79,16 @@ def get_diary(diary_date: str):
     diary = Diary.query.filter_by(user=current_user).filter_by(diary_date=diary_date).first()
     nav_date = datetime.strptime(diary_date, "%Y-%m-%d")
     navigation = {"previous": nav_date + timedelta(days=-1), "day": nav_date, "next": nav_date + timedelta(days=1)}
+    content_html = ''
 
     if diary:
         form.title.data = diary.show_title()
-        form.content.data = diary.show_content()
+        decrypted_content = diary.show_content()
+        form.content.data = decrypted_content
+        content_html = markdown.markdown(decrypted_content)
         form.diary_date.data = diary.diary_date
         title = "{}".format(diary.show_title())
     else:
         title = "No Story Added for Today"
 
-    return render_template("views/diary/show.html", title=title, form=form, navigation=navigation)
+    return render_template("views/diary/show.html", title=title, form=form, navigation=navigation, content_html=content_html)

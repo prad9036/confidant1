@@ -8,7 +8,7 @@ class Diary(BaseModel):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = db.relationship("User", backref="user")
     title = db.Column(db.String(50), nullable=False)
-    content = db.Column(db.String(70), nullable=False)
+    content = db.Column(db.Text, nullable=False)
     diary_date = db.Column(db.Date, nullable=False)
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Diary(BaseModel):
         return self.encryption(self.title, -3)
 
     def save_content(self, content):
-        self.content = self.encryption(content, +3)
+        self.content = content
 
     def show_content(self):
-        return self.encryption(self.content, -3)
+        return self.content

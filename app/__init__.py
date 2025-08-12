@@ -35,4 +35,7 @@ def create_app():
     from app.routes.profile import profile_bp
     app.register_blueprint(profile_bp)
 
+    from app.routes.api import api_bp
+    app.register_blueprint(api_bp)
+
     return app
